@@ -355,14 +355,14 @@ export const generateTypes = async (outputPath?: string): Promise<void> => {
 
   fs.writeFileSync(rootFilePath, `${rootImports}\n${rootTypeDefinitions}`)
   console.info(`Created root type file: ${rootFilePath}`)
-  
+
   // Create index.ts file with exports in tables folder
   const indexFilePath = path.join(typesDir, 'index.ts')
   const indexContent = `export * from './tables';
 export type { Tables } from './tables';`
   fs.writeFileSync(indexFilePath, indexContent)
   console.info(`Created index file in tables folder: ${indexFilePath}`)
-  
+
   // Create index.ts file in generated root folder
   const rootIndexFilePath = path.join(typesDir, '..', 'index.ts')
   const rootIndexContent = `export * from './tables';
