@@ -41,16 +41,10 @@ Let's say we have the following monorepo folder structure:
 apps/
   frontend/
   backend/
-common/
+packages/
   ui/
 package.json
 .env
-```
-
-Install the package:
-
-```bash
-pnpm i -D @iamsuperdev/typeful
 ```
 
 Add `DATABASE_URL` to the `.env` file (only PostgreSQL is available at this moment).
@@ -59,10 +53,10 @@ It assumes the database has an existing data structure and schema.
 Generate types:
 
 ```bash
-pnpm generate common
+npx @iamsuperdev/typeful packages
 ```
 
-Then in the common folder, a new folder named "generated" will appear.
+Then in the packages folder, a new folder named "generated" will appear.
 
 Updated folder structure:
 
@@ -70,32 +64,61 @@ Updated folder structure:
 apps/
   frontend/
   backend/
-common/
+packages/
   generated/
   ui/
 package.json
 .env
 ```
 
-Create a **single endpoint** on the backend:
+Add packages.json to the generated folder.
+```json
+{
+  "name": "@repo/generated",
+  "version": "0.0.0",
+  "private": true,
+  "main": "./index.js",
+  "types": "./index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./index.d.ts",
+      "default": "./index.js"
+    }
+  }
+}
+
+```
+Install the **typeful** and create a **single endpoint** on the backend:
+
+```bash
+pnpm i -D @iamsuperdev/typeful
+```
 
 ```js
 // Import the performQuery function
-import { performQuery } from '@iamsuperdev/typeful'
+import { performQuery, type TablesObject } from '@iamsuperdev/typeful'
+import { serve } from 'bun'
 
 serve({
-  routes: {
-    '/api': async (req) => {
-      const data = await performQuery(req.body.query)
-      return { data }
+    routes: {
+        '/api': async (req) => {
+            const body = await req.json() as { query: TablesObject }
+            const data = await performQuery(body.query)
+            return new Response(JSON.stringify({ data }), {
+                headers: { 'Content-Type': 'application/json' }
+            })
+        },
     },
-  },
 })
 ```
 
 That's it for the backend! 🎉
 
-Now let's create a users service on the frontend.
+Now let's install **typeful** on the frontend and create a users service.
+
+```bash
+pnpm i -D @iamsuperdev/typeful
+```
 
 ```js
 import type { Tables } from "@repo/generated/tables";
