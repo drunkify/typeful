@@ -35,6 +35,8 @@ The idea is to create a robust solution that helps maintain consistency from the
 
 ## Usage
 
+Ready to use template https://github.com/drunkify/typeful-monorepo-template
+
 Let's say we have the following monorepo folder structure:
 
 ```
