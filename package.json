@@ -1,0 +1,64 @@
+{
+  "name": "@iamsuperdev/typeful",
+  "description": "Full-stack type safety ORM for PostgreSQL with TypeScript",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/drunkify/typeful"
+  },
+  "version": "1.1.8",
+  "license": "MIT",
+  "keywords": [
+    "typescript",
+    "orm",
+    "postgresql",
+    "postgres",
+    "database",
+    "type-safety",
+    "typesafe",
+    "sql",
+    "query-builder",
+    "full-stack",
+    "backend",
+    "node",
+    "schema",
+    "migration",
+    "type-checking"
+  ],
+  "type": "module",
+  "main": "dist/index.js",
+  "bin": {
+    "generate": "dist/run-generate.js"
+  },
+  "scripts": {
+    "build": "tsc && npm run uglify && cp -r src/core dist && rm -rf dist/private",
+    "build:core": "tsc && npm run uglify && rm -rf dist/core && rm -rf src/core && mv dist/private dist/core && cp -r dist/core src/core",
+    "uglify": "find dist -name '*.js' -type f -exec npx uglifyjs {} -o {} -c -m \\;",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  },
+  "devDependencies": {
+    "@types/node": "^24.2.0",
+    "@types/lodash": "^4.17.16",
+    "@eslint/js": "^9.17.0",
+    "@typescript-eslint/eslint-plugin": "^8.20.0",
+    "@typescript-eslint/parser": "^8.20.0",
+    "eslint": "^9.17.0",
+    "globals": "^15.14.0",
+    "prettier": "^3.4.2",
+    "uglify-js": "^3.19.3"
+  },
+  "peerDependencies": {
+    "typescript": "^5.8.2"
+  },
+  "dependencies": {
+    "dotenv": "^17.2.1",
+    "lodash": "^4.17.21",
+    "postgres": "^3.4.5"
+  },
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ]
+}

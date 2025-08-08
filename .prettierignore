@@ -1,0 +1,4 @@
+dist
+src/core
+**/*.js
+**/*.d.ts
