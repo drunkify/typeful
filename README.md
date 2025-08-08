@@ -38,13 +38,12 @@ The idea is to create a robust solution that helps maintain consistency from the
 Let's say we have the following monorepo folder structure:
 
 ```
-apps/
-  frontend/
-  backend/
-packages/
-  ui/
-package.json
-.env
+├── apps/
+│   ├── api/          # Backend API service with typeful ORM
+│   └── client/       # React frontend application
+├── packages/
+│   └── ui/           # Common ui library
+└── package.json      # Root package configuration
 ```
 
 Add `DATABASE_URL` to the `.env` file (only PostgreSQL is available at this moment).
@@ -61,14 +60,13 @@ Then in the packages folder, a new folder named "generated" will appear.
 Updated folder structure:
 
 ```
-apps/
-  frontend/
-  backend/
-packages/
-  generated/
-  ui/
-package.json
-.env
+├── apps/
+│   ├── api/          
+│   └── client/      
+├── packages/
+│   └── generated/    # Auto-generated types and shared definitions
+│   └── ui/           
+└── package.json   
 ```
 
 Add packages.json to the generated folder.
@@ -95,21 +93,15 @@ pnpm i -D @iamsuperdev/typeful
 ```
 
 ```js
-// Import the performQuery function
 import { performQuery, type TablesObject } from '@iamsuperdev/typeful'
-import { serve } from 'bun'
+import { Elysia } from 'elysia'
+import { cors } from '@elysiajs/cors'
 
-serve({
-    routes: {
-        '/api': async (req) => {
-            const body = await req.json() as { query: TablesObject }
-            const data = await performQuery(body.query)
-            return new Response(JSON.stringify({ data }), {
-                headers: { 'Content-Type': 'application/json' }
-            })
-        },
-    },
-})
+new Elysia().use(cors()).post('/api', async ({ body }) => {
+    const payload = body as { query: TablesObject }
+    const data = await performQuery(payload.query)
+    return data
+}).listen(4000)
 ```
 
 That's it for the backend! 🎉
@@ -121,11 +113,10 @@ pnpm i -D @iamsuperdev/typeful
 ```
 
 ```js
-import type { Tables } from "@repo/generated/tables";
-import type { QueryInstance, DTO } from "@iamsuperdev/typeful";
+import type { DTO, QueryInstance } from "@iamsuperdev/typeful";
+import type { Tables } from "@repo/generated";
 
-// Create function for building query, which accepts userId parameter
-function findUserById({ userId }) {
+export function findUserById({ userId }: { userId: number }) {
   return {
       tables: {
           users: {
@@ -147,28 +138,39 @@ function findUserById({ userId }) {
   } satisfies QueryInstance<Tables>
 }
 
-// Create DTO based on the query and generated from database tables
-export type UsersQueryDTO = DTO<Tables, typeof findUserById>;
-
-// Build query and Fetch data
-const query = findUserById({ userId: 1 });
-fetch('https://api.example.com/api',
-    { method: 'POST', body: JSON.stringify({ query }) })
-    .then(response => response.json())
-    .then((result: usersQueryDTO) => {
-        result.users.forEach(user => {
-            console.log("Users email:", user.email)
-        })
-    })
+export type FindUserByIdDTO = DTO<Tables, typeof findUserById>;
 ```
-
-Thanks to the DTO type helper, developers get full autocompletion and static type checking.
-
-<img width="804" height="200" alt="autopomletition" src="https://github.com/user-attachments/assets/f3845934-55d6-4a4c-8f4f-f5218f360ffa" />
 
 You'll see that it's not possible to make mistakes, because the query must satisfy the database schema due to generated types and the special `QueryInstance` type.
 
 <img width="612" height="171" alt="not_existing_field" src="https://github.com/user-attachments/assets/862b14bb-b977-4b26-903c-528241d635f6" />
+
+Fetch data
+```js
+const [user, setUser] = useState<FindUserByIdDTO['users'][number] | null>(null)
+
+useEffect(() => {
+  const query = findUserById({ userId: 1 })
+  fetch('http://localhost:4000/api', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ query })
+  })
+    .then(response => response.json())
+    .then((data: FindUserByIdDTO) => {
+      setUser(data.users[0])
+    })
+    .catch(error => {
+      console.error('Error fetching user data:', error)
+    })
+}, [])
+```
+
+Thanks to the DTO type helper, developers get full autocompletion and static type checking.
+
+<img width="1218" height="238" alt="autocompl" src="https://github.com/user-attachments/assets/f01b66ff-5b95-41d4-8773-b53e8c9dd438" />
 
 The backend receives the query and converts it to a SQL query like this. You won't need to deal with it — it happens under the hood automatically.
 
@@ -233,4 +235,4 @@ Add the generate script before the TypeScript transpiler, and no one can break t
 
 ## License
 
-GPL License
+MIT License
